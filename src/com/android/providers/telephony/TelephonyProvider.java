@@ -435,18 +435,18 @@ public class TelephonyProvider extends ContentProvider
         //
         // In case multi-sim is not enabled,
         // use column name "apn_id".
-        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
-            switch (subId) {
-            case MSimConstants.SUB1:
-            case MSimConstants.SUB2:
-                result += String.valueOf(subId);
-                break;
-            default:
-                result += String.valueOf(MSimTelephonyManager.getDefault()
-                        .getPreferredDataSubscription());
-                break;
-           }
-        }
+//        if (MSimTelephonyManager.getDefault().isMultiSimEnabled()) {
+//            switch (subId) {
+//            case MSimConstants.SUB1:
+//            case MSimConstants.SUB2:
+//                result += String.valueOf(subId);
+//                break;
+//            default:
+//                result += String.valueOf(MSimTelephonyManager.getDefault()
+//                        .getPreferredDataSubscription());
+//                break;
+//           }
+//        }
         Log.d(TAG, "Column apn id key is '" + result + "'");
         return result;
     }
@@ -464,15 +464,18 @@ public class TelephonyProvider extends ContentProvider
 
     private String getOperatorNumeric(int subId) {
         if (subId != MSimConstants.SUB1 && subId != MSimConstants.SUB2) {
-            subId = MSimTelephonyManager.getDefault().getDefaultSubscription();
+//            subId = MSimTelephonyManager.getDefault().getDefaultSubscription();
+            subId = 0;
         }
-        String numeric = MSimTelephonyManager.getTelephonyProperty(
-                TelephonyProperties.PROPERTY_APN_SIM_OPERATOR_NUMERIC, subId, null);
-        if (numeric != null && numeric.length() > 0) {
-            return numeric;
-        } else {
-            return null;
-        }
+//        String numeric = MSimTelephonyManager.getTelephonyProperty(
+//                TelephonyProperties.PROPERTY_APN_SIM_OPERATOR_NUMERIC, subId, null);
+//        if (numeric != null && numeric.length() > 0) {
+//            return numeric;
+//        } else {
+//            return null;
+//        }
+        
+        return null;
     }
 
     private long getPreferredApnId(int subId) {

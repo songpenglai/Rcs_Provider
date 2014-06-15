@@ -48,7 +48,9 @@ import java.util.HashMap;
 public class SmsProvider extends ContentProvider {
     private static final Uri NOTIFICATION_URI = Uri.parse("content://sms");
     private static final Uri ICC_URI = Uri.parse("content://sms/icc");
+    private static final Uri ICC_GROUPS = Uri.parse("content://sms/groups");
     static final String TABLE_SMS = "sms";
+    static final String TABLE_GROUPS = "groups";
     private static final String TABLE_RAW = "raw";
     private static final String TABLE_SR_PENDING = "sr_pending";
     private static final String TABLE_WORDS = "words";
@@ -208,6 +210,10 @@ public class SmsProvider extends ContentProvider {
                 String messageIndexString = url.getPathSegments().get(1);
 
                 return getSingleMessageFromIcc(messageIndexString);
+                
+            case RCS_GROUPS:
+                qb.setTables(TABLE_GROUPS);
+                break;  
 
             default:
                 Log.e(TAG, "Invalid request: " + url);
@@ -414,6 +420,9 @@ public class SmsProvider extends ContentProvider {
                 table = "canonical_addresses";
                 break;
 
+            case RCS_GROUPS:
+            	   table = TABLE_GROUPS;
+                break;
             default:
                 Log.e(TAG, "Invalid request: " + url);
                 return null;
@@ -498,7 +507,27 @@ public class SmsProvider extends ContentProvider {
                 // Mark all non-inbox messages read.
                 values.put(Sms.READ, ONE);
             }
-        } else {
+        } else if (table.equals(TABLE_GROUPS))  {
+            if (initialValues == null) {
+                values = new ContentValues(1);
+            } else {
+                values = initialValues;
+            }
+            rowID = db.insert(table, "name", values);
+            
+            if (rowID > 0) {
+                Uri uri = Uri.parse("content://" + table + "/" + rowID);
+
+                if (Log.isLoggable(TAG, Log.VERBOSE)) {
+                    Log.d(TAG, "insert " + uri + " succeeded");
+                }
+                notifyChange(uri);
+                return uri;
+            } else {
+                Log.e(TAG,"insert: failed! " + values.toString());
+            }
+            return null;
+		} else {
             if (initialValues == null) {
                 values = new ContentValues(1);
             } else {
@@ -591,6 +620,10 @@ public class SmsProvider extends ContentProvider {
 
                 return deleteMessageFromIcc(messageIndexString);
 
+            case RCS_GROUPS:
+                count = db.delete("groups", where, whereArgs);
+                break;
+
             default:
                 throw new IllegalArgumentException("Unknown URL");
         }
@@ -679,7 +712,9 @@ public class SmsProvider extends ContentProvider {
             case SMS_STATUS_ID:
                 extraWhere = "_id=" + url.getPathSegments().get(1);
                 break;
-
+            case RCS_GROUPS:
+                table = TABLE_GROUPS;
+                break;
             default:
                 throw new UnsupportedOperationException(
                         "URI " + url + " not supported");
@@ -742,6 +777,7 @@ public class SmsProvider extends ContentProvider {
     private static final int SMS_FAILED_ID = 25;
     private static final int SMS_QUEUED = 26;
     private static final int SMS_UNDELIVERED = 27;
+    private static final int RCS_GROUPS = 28;
 
     private static final UriMatcher sURLMatcher =
             new UriMatcher(UriMatcher.NO_MATCH);
@@ -775,6 +811,7 @@ public class SmsProvider extends ContentProvider {
         //we keep these for not breaking old applications
         sURLMatcher.addURI("sms", "sim", SMS_ALL_ICC);
         sURLMatcher.addURI("sms", "sim/#", SMS_ICC);
+        sURLMatcher.addURI("sms", "groups", RCS_GROUPS);
 
         sConversationProjectionMap.put(Sms.Conversations.SNIPPET,
             "sms.body AS snippet");

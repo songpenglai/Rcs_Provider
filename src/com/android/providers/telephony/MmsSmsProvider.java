@@ -135,7 +135,10 @@ public class MmsSmsProvider extends ContentProvider {
     // table.
     private static final String[] SMS_ONLY_COLUMNS =
             { "address", "body", "person", "reply_path_present",
-              "service_center", "status", "subject", "type", "error_code" };
+              "service_center", "status", "subject", "type", "error_code", 
+              "file_name", "file_type", "file_path", "file_trans_id",
+              "file_size", "send_size", "recv_size", "imdn_string", "imdn_type",
+              "notify_type", "has_thums"};
 
     // These are all the columns that appear in the "threads" table.
     private static final String[] THREADS_COLUMNS = {
